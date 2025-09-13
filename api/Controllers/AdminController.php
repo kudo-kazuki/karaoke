@@ -36,7 +36,7 @@ class AdminController
             'name' => $admin->name,
             'level' => $admin->level,
             'role' => 'admin',
-            'exp' => time() + 60 * 60 * 24, // 24時間有効
+            'exp' => time() + 60 * 60 * 120, // 120時間有効
         ];
 
         // JWT発行
@@ -44,5 +44,35 @@ class AdminController
 
         // 成功レスポンス
         success(['token' => $token]);
+    }
+
+    public function create(): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        // バリデーション
+        $errors = validate($input, Admin::$createRules);
+        if (!empty($errors)) {
+            error(['validation' => $errors], 422);
+        }
+
+        try {
+            $admin = new Admin();
+            $admin->name = $input['name'];
+            $admin->level = (int) $input['level'];
+            $admin->remarks = $input['remarks'] ?? '';
+            $admin->password = password_hash($input['password'], PASSWORD_DEFAULT);
+            $admin->save();
+
+            success([
+                'id' => $admin->id,
+                'name' => $admin->name,
+                'level' => $admin->level,
+                'remarks' => $admin->remarks,
+                'created_at' => $admin->created_at,
+            ]);
+        } catch (\Throwable $e) {
+            error('管理者の作成に失敗しました: ' . $e->getMessage(), 500);
+        }
     }
 }
