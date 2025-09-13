@@ -1,0 +1,97 @@
+version: "3.9"
+
+name: karaoke
+
+services:
+  mysql:
+    build:
+      context: ./docker/mysql
+    container_name: mysql
+    #command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_pass
+      TZ: Asia/Tokyo
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      #- ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro ← データ永続化。my.cnf はイメージに同梱するので不要
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  php:
+    build:
+      context: ./docker/php
+    container_name: php
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      TZ: Asia/Tokyo
+      # アプリからDBへはホスト名 mysql / ポート 3306 を利用
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: app_db
+      DB_USERNAME: app_user
+      DB_PASSWORD: app_pass
+    volumes:
+      # アプリのルート（必要に応じて public/ を Nginx のドキュメントルートに）
+      - ./:/var/www/html
+      - ./docker/php/entrypoint.sh:/usr/local/bin/entrypoint.custom.sh:ro
+    entrypoint: ["/usr/local/bin/entrypoint.custom.sh"]
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nginx
+    depends_on:
+      - php
+    ports:
+      - "8082:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./:/var/www/html:ro
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5
+    container_name: phpmyadmin
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: "3306"
+      UPLOAD_LIMIT: 128M
+      TZ: Asia/Tokyo
+    ports:
+      - "8083:80"
+    volumes:
+      - ./docker/phpmyadmin/php.ini:/usr/local/etc/php/php.ini:ro
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+
+networks:
+  app-network:
+    driver: bridge
