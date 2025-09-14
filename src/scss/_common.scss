@@ -101,6 +101,9 @@ select {
     font-size: 14px;
 }
 
+.el-popper {
+    z-index: 10000 !important;
+}
 .el-input,
 .el-select {
     .el-input__wrapper,
@@ -116,6 +119,9 @@ select {
     .el-select__placeholder {
         color: inherit;
     }
+}
+.el-date-editor.el-input.el-date-editor {
+    height: 43px;
 }
 
 .el-popper {

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useWindowSizeAndDevice } from '@/composables/useWindowSizeAndDevice'
 import { useAdminAuthStore } from '@/stores/admin_auth'
 import { useAdminModals } from '@/composables/useAdminModals'
+import router from '@/router'
 
 const { width, height, deviceType } = useWindowSizeAndDevice()
 const adminAuthStore = useAdminAuthStore()
@@ -24,6 +25,7 @@ const {
     isLoadingText,
     selectedAdminData,
     formatDate,
+    modalErrorMessage,
 
     editedAdminName,
     editedAdminPassword,
@@ -78,6 +80,12 @@ onMounted(() => {
                 size="m"
                 color="blue"
             />
+
+            <ul>
+                <li>
+                    <router-link to="/admin/singer">歌手管理</router-link>
+                </li>
+            </ul>
 
             <hr />
 
@@ -189,6 +197,12 @@ onMounted(() => {
                             />
                         </li>
                     </ul>
+
+                    <p
+                        v-if="modalErrorMessage"
+                        v-html="modalErrorMessage"
+                        class="Page__errorMessage"
+                    ></p>
                 </template>
 
                 <template #footer>
@@ -224,6 +238,11 @@ onMounted(() => {
                         }}<br />を削除しても本当によろしいですか？
                     </p>
                     <p>削除すると元には戻せません。</p>
+                    <p
+                        v-if="modalErrorMessage"
+                        v-html="modalErrorMessage"
+                        class="Page__errorMessage"
+                    ></p>
                 </template>
 
                 <template #footer>
@@ -296,6 +315,11 @@ onMounted(() => {
                             />
                         </li>
                     </ul>
+                    <p
+                        v-if="modalErrorMessage"
+                        v-html="modalErrorMessage"
+                        class="Page__errorMessage"
+                    ></p>
                 </template>
 
                 <template #footer>
@@ -363,6 +387,12 @@ onMounted(() => {
     &__LabelSmall {
         display: block;
         font-size: 11px;
+    }
+
+    &__errorMessage {
+        color: crimson;
+        text-align: center;
+        margin: 10px 0;
     }
 }
 </style>

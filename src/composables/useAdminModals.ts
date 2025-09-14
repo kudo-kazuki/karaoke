@@ -4,6 +4,7 @@ import { apiAuth } from '@/utils/apiClient'
 import { useAdminAuthStore } from '@/stores/admin_auth'
 import type { Admin } from '@/types'
 import { useAdminList } from '@/composables/useAdminList'
+import { formatApiError } from '@/utils/formatApiError'
 
 export function useAdminModals() {
     const adminAuthStore = useAdminAuthStore()
@@ -12,6 +13,8 @@ export function useAdminModals() {
     const isLoading = ref(false)
     const isLoadingText = ref('')
     const selectedAdminData = ref<Admin | null>(null)
+
+    const modalErrorMessage = ref('')
 
     const formatDate = (value: string) =>
         dayjs(value).format('YYYY-MM-DD HH:mm:ss')
@@ -30,6 +33,7 @@ export function useAdminModals() {
         editedAdminLevel.value = admin.level
         editedAdminRemarks.value = admin.remarks ?? ''
         isOpenEditAdminModal.value = true
+        modalErrorMessage.value = ''
     }
 
     const closeEditAdmin = () => {
@@ -69,6 +73,8 @@ export function useAdminModals() {
             }
         } catch (error) {
             console.error('編集に失敗しました', error)
+            modalErrorMessage.value = `編集に失敗しました<br>${formatApiError(error)}`
+
             isLoadingText.value = '失敗'
             isLoading.value = false
         }
@@ -80,6 +86,7 @@ export function useAdminModals() {
     const openDeleteAdmin = (admin: Admin) => {
         selectedAdminData.value = admin
         isOpenDeleteAdminModal.value = true
+        modalErrorMessage.value = ''
     }
 
     const closeDeleteAdmin = () => {
@@ -109,6 +116,7 @@ export function useAdminModals() {
             }
         } catch (error) {
             console.error('削除に失敗しました', error)
+            modalErrorMessage.value = `削除に失敗しました<br>${formatApiError(error)}`
             isLoadingText.value = '失敗'
             isLoading.value = false
         }
@@ -123,6 +131,7 @@ export function useAdminModals() {
 
     const openCreateAdmin = () => {
         isOpenCreateAdminModal.value = true
+        modalErrorMessage.value = ''
     }
 
     const closeCreateAdmin = () => {
@@ -162,6 +171,7 @@ export function useAdminModals() {
             }
         } catch (error) {
             console.error('作成に失敗しました', error)
+            modalErrorMessage.value = `作成に失敗しました<br>${formatApiError(error)}`
             isLoadingText.value = '失敗'
             isLoading.value = false
         }
@@ -174,6 +184,7 @@ export function useAdminModals() {
         isLoadingText,
         selectedAdminData,
         formatDate,
+        modalErrorMessage,
 
         // 編集
         editedAdminName,

@@ -48,12 +48,23 @@ class AdminController
 
     public function create(): void
     {
+        // JWT認証＆管理者ロールチェック
+        $user = requireAdmin();
+        if ($user->level !== 0) {
+            error('管理者権限がありません', 403);
+        }
+
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
         // バリデーション
         $errors = validate($input, Admin::$createRules);
         if (!empty($errors)) {
             error(['validation' => $errors], 422);
+        }
+
+        // 名前の重複チェック
+        if (Admin::where('name', $input['name'])->exists()) {
+            error('同じ名前の管理者がすでに存在します', 409); // 409 Conflict
         }
 
         try {
@@ -73,6 +84,92 @@ class AdminController
             ]);
         } catch (\Throwable $e) {
             error('管理者の作成に失敗しました: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function edit(): void
+    {
+        // JWT認証＆管理者チェック
+        $user = requireAdmin();
+        if ($user->level !== 0) {
+            error('管理者権限がありません', 403);
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        // バリデーション
+        $errors = validate($input, Admin::$editRules);
+        if (!empty($errors)) {
+            error(['validation' => $errors], 422);
+        }
+
+        try {
+            $admin = Admin::findOrFail($input['id']);
+
+            // 同じ名前が存在するかチェック
+            $exists = Admin::where('name', $input['name'])
+                ->where('id', '!=', $input['id'])
+                ->exists();
+            if ($exists) {
+                error('同じ名前の管理者がすでに存在します', 409);
+            }
+
+            $admin->name = $input['name'];
+            $admin->level = (int) $input['level'];
+            $admin->remarks = $input['remarks'] ?? '';
+
+            // パスワードが送られてきていて空でなければ更新
+            if (!empty($input['password'])) {
+                $admin->password = password_hash($input['password'], PASSWORD_DEFAULT);
+            }
+
+            $admin->save();
+
+            success([
+                'id' => $admin->id,
+                'name' => $admin->name,
+                'level' => $admin->level,
+                'remarks' => $admin->remarks,
+                'updated_at' => $admin->updated_at,
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            error('指定された管理者が見つかりません', 404);
+        } catch (\Throwable $e) {
+            error('管理者の更新に失敗しました: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function delete(): void
+    {
+        // JWT認証＆管理者チェック
+        $user = requireAdmin();
+        if ($user->level !== 0) {
+            error('管理者権限がありません', 403);
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        // バリデーション
+        $errors = validate($input, Admin::$deleteRules);
+        if (!empty($errors)) {
+            error(['validation' => $errors], 422);
+        }
+
+        // 自分自身を削除しようとしていないかチェック
+        if ((int)$input['id'] === (int)$user->sub) {
+            error('自分自身を削除することはできません', 403);
+        }
+
+        try {
+            $admin = Admin::findOrFail($input['id']);
+
+            $admin->delete();
+
+            success(['id' => $input['id']]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            error('指定された管理者が見つかりません', 404);
+        } catch (\Throwable $e) {
+            error('管理者の削除に失敗しました: ' . $e->getMessage(), 500);
         }
     }
 }
