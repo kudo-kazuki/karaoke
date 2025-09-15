@@ -17,6 +17,12 @@ const props = withDefaults(defineProps<Props>(), {})
         <div class="SingersSongList__inner">
             <header class="SingersSongList__header" ref="headerRef">
                 <h1>{{ singerName }}の曲一覧</h1>
+                <Button
+                    class="Page__createButton"
+                    text="新規追加"
+                    color="blue"
+                    @click=""
+                />
             </header>
             <el-scrollbar>
                 <div class="SingersSongList__content">
@@ -70,6 +76,11 @@ const props = withDefaults(defineProps<Props>(), {})
 
 <style lang="scss" scoped>
 .SingersSongList {
+    &__header {
+        display: flex;
+        column-gap: 16px;
+    }
+
     &__loadingWrap {
         text-align: center;
         display: flex;
@@ -82,7 +93,7 @@ const props = withDefaults(defineProps<Props>(), {})
         grid-template-columns: repeat(3, 1fr); // デフォルトは4列
         gap: 12px; // 各アイテムの間隔
         padding: 6px;
-        margin-top: 8px;
+        margin-top: 12px;
 
         @media screen and (max-width: 1300px) {
             grid-template-columns: repeat(2, 1fr);
