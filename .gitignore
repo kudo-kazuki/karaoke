@@ -27,3 +27,4 @@ dist-ssr
 
 ./vendor/
 /api/.env.production
+/api/Db/Seeds/SongsSeeder.php

@@ -1,10 +1,8 @@
 import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
-import { apiAuth } from '@/utils/apiClient'
 import type { Singer, SingerFormInput } from '@/types'
 import { useSingerApi } from '@/composables/useSingerApi'
 import { useSingerList } from '@/composables/useSingerList'
-import { formatApiError } from '@/utils/formatApiError'
 
 export function useSingerModals() {
     const { singerList, fetchSingerList } = useSingerList()

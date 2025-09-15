@@ -85,6 +85,9 @@ onMounted(() => {
                 <li>
                     <router-link to="/admin/singer">歌手管理</router-link>
                 </li>
+                <li>
+                    <router-link to="/admin/song">曲管理</router-link>
+                </li>
             </ul>
 
             <hr />

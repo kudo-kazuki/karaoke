@@ -21,5 +21,10 @@ declare module 'vue' {
     RequireLabel: typeof import('./components/RequireLabel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SingerButtonList: typeof import('./components/SingerButtonList.vue')['default']
+    SingersSongList: typeof import('./components/SingersSongList.vue')['default']
+    SingersSongs: typeof import('./components/SingersSongs.vue')['default']
+    SlideContents: typeof import('./components/SlideContents.vue')['default']
+    YoutubeThumbnail: typeof import('./components/YoutubeThumbnail.vue')['default']
   }
 }

@@ -44,3 +44,23 @@ export interface SingerFormInput {
     debut_date: string // YYYY-MM-DD
     description?: string | null
 }
+
+export interface Song {
+    id: number
+    singer_id: number
+    name: string
+    youtube_url?: string | null
+    release_date?: string | null // YYYY-MM-DD 形式 or null
+    lyrics?: string | null
+    created_at: string
+    updated_at: string
+}
+
+export interface SongFormInput {
+    id?: number // 編集時のみ
+    singer_id: number
+    name: string
+    youtube_url?: string | null
+    release_date?: string | null // YYYY-MM-DD
+    lyrics?: string | null
+}
