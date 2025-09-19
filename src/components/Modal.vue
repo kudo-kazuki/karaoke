@@ -156,7 +156,7 @@ const close = () => {
     }
 
     &__bodyInner {
-        padding: 0 12px;
+        padding: 4px 12px;
     }
 
     &__footer {

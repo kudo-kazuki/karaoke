@@ -64,3 +64,8 @@ export interface SongFormInput {
     release_date?: string | null // YYYY-MM-DD
     lyrics?: string | null
 }
+
+export interface SubmitPayload {
+    isCreate: boolean
+    songData: SongFormInput
+}

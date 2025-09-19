@@ -1,10 +1,11 @@
 import { ref } from 'vue'
-import { api } from '@/utils/apiClient'
-import type { Song } from '@/types'
+import { api, apiAuth } from '@/utils/apiClient'
+import type { Song, SongFormInput } from '@/types'
 
 interface ApiResponse<T> {
     success: boolean
     data: T
+    message?: string
 }
 
 export function useSongApi() {
@@ -27,8 +28,41 @@ export function useSongApi() {
         }
     }
 
+    const createSong = async (
+        songData: SongFormInput,
+    ): Promise<ApiResponse<Song>> => {
+        const response = await apiAuth.post<ApiResponse<Song>>(
+            '/song/create',
+            songData,
+        )
+        return response.data
+    }
+
+    const editSong = async (
+        songData: SongFormInput,
+    ): Promise<ApiResponse<Song>> => {
+        const response = await apiAuth.post<ApiResponse<Song>>(
+            '/song/edit',
+            songData,
+        )
+        return response.data
+    }
+
+    const deleteSong = async (
+        songId: number,
+    ): Promise<ApiResponse<{ id: number }>> => {
+        const response = await apiAuth.post<ApiResponse<{ id: number }>>(
+            '/song/delete',
+            { id: songId },
+        )
+        return response.data
+    }
+
     return {
         isLoadingSongs,
         fetchSongsBySingerId,
+        createSong,
+        editSong,
+        deleteSong,
     }
 }

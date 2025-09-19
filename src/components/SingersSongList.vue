@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import type { Song } from '@/types'
+import type { Song, SongFormInput } from '@/types'
 
 interface Props {
     items: Song[]
@@ -10,6 +9,24 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {})
+
+const emit = defineEmits([
+    'clickedNewSongCreate',
+    'clickedEdit',
+    'clickedDelete',
+])
+
+const clickedNewSongCreate = () => {
+    emit('clickedNewSongCreate', props.singerId)
+}
+
+const clickedEdit = (data: SongFormInput) => {
+    emit('clickedEdit', data)
+}
+
+const clickedDelete = (data: { id: number; name: string }) => {
+    emit('clickedDelete', data)
+}
 </script>
 
 <template>
@@ -21,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {})
                     class="Page__createButton"
                     text="新規追加"
                     color="blue"
-                    @click=""
+                    @click="clickedNewSongCreate"
                 />
             </header>
             <el-scrollbar>
@@ -46,13 +63,18 @@ const props = withDefaults(defineProps<Props>(), {})
                                         class="Page__createButton"
                                         text="編集"
                                         color="blue"
-                                        @click=""
+                                        @click="clickedEdit(item)"
                                     />
                                     <Button
                                         class="Page__createButton"
                                         text="削除"
                                         color="red"
-                                        @click=""
+                                        @click="
+                                            clickedDelete({
+                                                id: item.id,
+                                                name: item.name,
+                                            })
+                                        "
                                     />
                                 </div>
                             </div>

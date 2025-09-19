@@ -4,9 +4,21 @@ import { useWindowSizeAndDevice } from '@/composables/useWindowSizeAndDevice'
 const { width, height, deviceType } = useWindowSizeAndDevice()
 import { useSingerList } from '@/composables/useSingerList'
 import { useSongList } from '@/composables/useSongList'
+import type { SubmitPayload, SongFormInput } from '@/types'
+import { EMPTY_DATA } from '@/constants/song'
 
 const { singerList, fetchSingerList, isLoadingSingerList } = useSingerList()
-const { songList, fetchSongListBySingerId, isLoadingSongList } = useSongList()
+const {
+    songList,
+    fetchSongListBySingerId,
+    isLoadingSongList,
+    createSongAndReload,
+    isCreatingSong,
+    isEditingSong,
+    editSongAndReload,
+    isDeletingSong,
+    deleteSongAndReload,
+} = useSongList()
 
 onMounted(async () => {
     fetchSingerList()
@@ -40,6 +52,90 @@ const openSingersSongs = (singerId: number) => {
 const closeSingersSongs = () => {
     activeSingerId.value = null
     isOpenSingerSongs.value = false
+}
+
+const activeSingerSongData = ref<SongFormInput>({ ...EMPTY_DATA })
+
+// 曲の新規登録時
+const isOpenNewSongCreate = ref(false)
+const openNewSongCreate = (singerId: number) => {
+    if (!singerId) {
+        alert(`なんかおかしい ${singerId}`)
+        return false
+    }
+    isOpenNewSongCreate.value = true
+    activeSingerSongData.value.singer_id = singerId
+}
+const closeNewSongCreate = () => {
+    isOpenNewSongCreate.value = false
+}
+
+// 曲の編集時
+const isOpenSongEdit = ref(false)
+const openSongEdit = (data: SongFormInput) => {
+    activeSingerSongData.value = data
+    isOpenSongEdit.value = true
+}
+const closeSongEdit = () => {
+    isOpenSongEdit.value = false
+}
+
+const sendAfterServerMessage = ref('')
+const sendSongData = async (data: SubmitPayload) => {
+    if (!data || !activeSingerId.value) {
+        return
+    }
+
+    sendAfterServerMessage.value = ''
+
+    // 新規登録
+    if (data.isCreate) {
+        const res = await createSongAndReload(
+            activeSingerId.value,
+            data.songData,
+        )
+        if (res.success) {
+            closeNewSongCreate()
+        } else {
+            sendAfterServerMessage.value = res.message ?? '登録に失敗しました'
+        }
+    } else {
+        // 編集
+        const res = await editSongAndReload(activeSingerId.value, data.songData)
+        if (res.success) {
+            closeSongEdit()
+        } else {
+            sendAfterServerMessage.value = res.message ?? '編集に失敗しました'
+        }
+    }
+}
+
+const activeDeleteData = ref<{ id: number; name: string }>({
+    id: 0,
+    name: '',
+})
+const isOpenSongDelete = ref(false)
+const openSongDelete = (data: { id: number; name: string }) => {
+    activeDeleteData.value.id = data.id
+    activeDeleteData.value.name = data.name
+    isOpenSongDelete.value = true
+}
+const closeSongDelete = () => {
+    isOpenSongDelete.value = false
+}
+const sendDeleteData = async () => {
+    if (!activeSingerId.value || !activeDeleteData.value.id) {
+        return
+    }
+    const res = await deleteSongAndReload(
+        activeSingerId.value,
+        activeDeleteData.value.id,
+    )
+    if (res.success) {
+        closeSongDelete()
+    } else {
+        sendAfterServerMessage.value = res.message ?? '削除に失敗しました'
+    }
 }
 </script>
 
@@ -83,8 +179,86 @@ const closeSingersSongs = () => {
                 :singerId="activeSingerId"
                 :singerName="activeSingerName"
                 :isLoading="isLoadingSongList"
+                @clickedNewSongCreate="openNewSongCreate"
+                @clickedEdit="openSongEdit"
+                @clickedDelete="openSongDelete"
             />
         </SlideContents>
+
+        <!-- 新規登録 -->
+        <Modal
+            :title="`${activeSingerName}の曲を新規登録`"
+            :isShow="isOpenNewSongCreate"
+            @close="closeNewSongCreate()"
+        >
+            <template #body>
+                <SongForm
+                    isCreate
+                    :singerId="activeSingerId"
+                    @onSubmit="sendSongData"
+                />
+                <p v-if="sendAfterServerMessage" class="Page__errorMessage">
+                    {{ sendAfterServerMessage }}
+                </p>
+            </template>
+        </Modal>
+
+        <!-- 曲編集 -->
+        <Modal
+            :title="`${activeSingerName}：${activeSingerSongData.name}の編集`"
+            :isShow="isOpenSongEdit"
+            @close="closeSongEdit()"
+        >
+            <template #body>
+                <SongForm
+                    :isCreate="false"
+                    :singerId="activeSingerId"
+                    :editData="activeSingerSongData"
+                    @onSubmit="sendSongData"
+                />
+                <p v-if="sendAfterServerMessage" class="Page__errorMessage">
+                    {{ sendAfterServerMessage }}
+                </p>
+            </template>
+        </Modal>
+
+        <!-- 曲削除 -->
+        <Modal
+            :title="`${activeSingerName}：${activeDeleteData.name}の削除`"
+            :isShow="isOpenSongDelete"
+            @close="closeSongDelete()"
+        >
+            <template #body>
+                <div>
+                    <p class="deleteText">
+                        {{
+                            `${activeSingerName}：${activeDeleteData.name}を削除します。`
+                        }}<br />本当によろしいですか？
+                    </p>
+                    <div class="Page__footerButtonWrap">
+                        <Button
+                            class="Page__footerButton"
+                            text="キャンセル"
+                            color="gray"
+                            @click="closeSongDelete()"
+                        />
+                        <Button
+                            class="Page__footerButton"
+                            text="削除"
+                            color="red"
+                            @click="sendDeleteData()"
+                        />
+                    </div>
+                </div>
+                <p v-if="sendAfterServerMessage" class="Page__errorMessage">
+                    {{ sendAfterServerMessage }}
+                </p>
+            </template>
+        </Modal>
+
+        <Loading v-if="isCreatingSong" text="登録中" />
+        <Loading v-if="isEditingSong" text="更新中" />
+        <Loading v-if="isDeletingSong" text="削除中" />
     </div>
 </template>
 
@@ -146,7 +320,22 @@ const closeSingersSongs = () => {
         margin: 10px 0;
     }
 
+    &__footerButtonWrap {
+        display: flex;
+        justify-content: center;
+        column-gap: 16px;
+        margin-top: 32px;
+    }
+
+    &__footerButton {
+        width: 96px;
+    }
+
     @media screen and (max-width: 740px) {
     }
+}
+
+.deleteText {
+    text-align: center;
 }
 </style>

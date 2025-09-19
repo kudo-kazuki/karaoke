@@ -25,6 +25,7 @@ declare module 'vue' {
     SingersSongList: typeof import('./components/SingersSongList.vue')['default']
     SingersSongs: typeof import('./components/SingersSongs.vue')['default']
     SlideContents: typeof import('./components/SlideContents.vue')['default']
+    SongForm: typeof import('./components/SongForm.vue')['default']
     YoutubeThumbnail: typeof import('./components/YoutubeThumbnail.vue')['default']
   }
 }
