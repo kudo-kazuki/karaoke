@@ -124,7 +124,14 @@ const sortedItems = computed(() => {
                             class="SingersSongList__item"
                         >
                             <div class="SingersSongList__name">
-                                {{ item.name }}
+                                <div>
+                                    {{ item.name }}
+                                    <small
+                                        v-if="!item.lyrics"
+                                        class="SingersSongList__lyricNone"
+                                        >歌詞なし</small
+                                    >
+                                </div>
                                 <div class="SingersSongList__buttons">
                                     <Button
                                         class="Page__createButton"
@@ -213,6 +220,13 @@ const sortedItems = computed(() => {
         width: 40%;
         font-weight: bold;
         flex-shrink: 0;
+    }
+
+    &__lyricNone {
+        display: block;
+        font-weight: normal;
+        font-size: 12px;
+        color: #666;
     }
 
     &__buttons {
