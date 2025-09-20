@@ -1,6 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # 環境変数設定
+    SetEnv APP_ENV production
+
     # 既存ファイル・ディレクトリはそのまま返す
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d

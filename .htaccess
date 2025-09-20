@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 既存ファイル・ディレクトリがある場合はそのまま
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # それ以外は全て index.html にリダイレクト
+  RewriteRule . /index.html [L]
+</IfModule>
