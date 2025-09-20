@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AccordionItem: typeof import('./components/AccordionItem.vue')['default']
     Button: typeof import('./components/Button.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
@@ -24,6 +25,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     ScrollToTopButton: typeof import('./components/ScrollToTopButton.vue')['default']
     SingerButtonList: typeof import('./components/SingerButtonList.vue')['default']
+    SingerSongAccordionList: typeof import('./components/SingerSongAccordionList.vue')['default']
     SingersSongList: typeof import('./components/SingersSongList.vue')['default']
     SingersSongs: typeof import('./components/SingersSongs.vue')['default']
     SlideContents: typeof import('./components/SlideContents.vue')['default']
