@@ -10,6 +10,10 @@ body {
     background-color: #fff;
     overflow-x: hidden;
     transition: transform 0.5s ease;
+
+    @media (max-width: 767px) {
+        font-size: 14px;
+    }
 }
 
 a {
@@ -92,6 +96,10 @@ select {
         &.error {
             border-color: #ec2222;
         }
+
+        @media (max-width: 767px) {
+            font-size: 14px;
+        }
     }
 }
 
@@ -114,6 +122,10 @@ select {
         padding: 0.5rem;
         font-size: 1rem;
         height: 43px;
+
+        @media (max-width: 767px) {
+            font-size: 14px;
+        }
     }
 
     .el-select__placeholder {

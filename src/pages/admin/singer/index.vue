@@ -345,7 +345,7 @@ onBeforeUnmount(() => {
                     </li>
                     <li>
                         <Button
-                            text="作成"
+                            text="上書き"
                             color="blue"
                             :isDisabled="!isSingerEditOk"
                             @click="saveEditSinger()"
@@ -438,6 +438,7 @@ onBeforeUnmount(() => {
 
     &__editLabel {
         width: 180px;
+        flex-shrink: 0;
     }
 
     &__LabelSmall {
@@ -452,6 +453,9 @@ onBeforeUnmount(() => {
     }
 
     @media screen and (max-width: 740px) {
+        &__editLabel {
+            width: 130px;
+        }
     }
 }
 </style>

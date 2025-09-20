@@ -9,6 +9,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@fancyapps/ui": "^6.0.32",
         "@msgpack/msgpack": "^3.1.1",
         "@vueuse/core": "^13.9.0",
         "animate.css": "^4.1.1",

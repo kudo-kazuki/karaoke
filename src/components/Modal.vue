@@ -181,8 +181,26 @@ const close = () => {
     }
 
     @media (max-width: 600px) {
+        padding: 12px;
+
         &--m &__inner {
             width: 100%;
+        }
+
+        &__body {
+            padding: 16px 4px;
+        }
+
+        &__header {
+            padding: 12px;
+
+            h1 {
+                font-size: 18px;
+            }
+        }
+
+        &__closeButton {
+            right: 12px;
         }
     }
 

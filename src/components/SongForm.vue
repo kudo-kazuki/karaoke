@@ -234,7 +234,13 @@ const onSubmit = () => {
                             </tr>
                             <tr>
                                 <th>歌詞</th>
-                                <td><pre v-html="editData.lyrics"></pre></td>
+                                <td>
+                                    <pre
+                                        v-if="editData.lyrics"
+                                        v-html="editData.lyrics"
+                                    ></pre>
+                                    <span v-else>-</span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -276,6 +282,11 @@ const onSubmit = () => {
 <style lang="scss" scoped>
 .SongForm {
     width: 100%;
+    height: 100%;
+
+    &__inner {
+        height: 100%;
+    }
 
     &__editItems {
         display: flex;
@@ -304,6 +315,7 @@ const onSubmit = () => {
 
     &__editLabel {
         width: 180px;
+        flex-shrink: 0;
     }
 
     &__LabelSmall {
@@ -330,6 +342,7 @@ const onSubmit = () => {
 
     &__footerButtonWrap {
         display: flex;
+        flex-shrink: 0;
         justify-content: center;
         column-gap: 16px;
         margin-top: 20px;
@@ -337,6 +350,20 @@ const onSubmit = () => {
 
     & &__footerButton {
         width: 96px;
+    }
+
+    @media screen and (max-width: 740px) {
+        &__editLabel {
+            width: 138px;
+        }
+
+        &__table {
+            tr {
+                th {
+                    width: 100%;
+                }
+            }
+        }
     }
 }
 

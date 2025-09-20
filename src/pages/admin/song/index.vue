@@ -54,6 +54,10 @@ const closeSingersSongs = () => {
     isOpenSingerSongs.value = false
 }
 
+const showFlashMessage = ref(false)
+const flashMessage = ref('')
+const flashMessagetype = ref('success')
+
 const activeSingerSongData = ref<SongFormInput>({ ...EMPTY_DATA })
 
 // 曲の新規登録時
@@ -95,18 +99,28 @@ const sendSongData = async (data: SubmitPayload) => {
             data.songData,
         )
         if (res.success) {
+            flashMessage.value = '成功'
+            flashMessagetype.value = 'success'
             closeNewSongCreate()
         } else {
             sendAfterServerMessage.value = res.message ?? '登録に失敗しました'
+            flashMessage.value = res.message
+            flashMessagetype.value = 'error'
         }
+        showFlashMessage.value = true
     } else {
         // 編集
         const res = await editSongAndReload(activeSingerId.value, data.songData)
         if (res.success) {
+            flashMessage.value = '成功'
+            flashMessagetype.value = 'success'
             closeSongEdit()
         } else {
             sendAfterServerMessage.value = res.message ?? '編集に失敗しました'
+            flashMessage.value = res.message
+            flashMessagetype.value = 'error'
         }
+        showFlashMessage.value = true
     }
 }
 
@@ -131,10 +145,16 @@ const sendDeleteData = async () => {
         activeSingerId.value,
         activeDeleteData.value.id,
     )
+    showFlashMessage.value = true
+
     if (res.success) {
+        flashMessage.value = '成功'
+        flashMessagetype.value = 'success'
         closeSongDelete()
     } else {
         sendAfterServerMessage.value = res.message ?? '削除に失敗しました'
+        flashMessage.value = res.message
+        flashMessagetype.value = 'error'
     }
 }
 </script>
@@ -161,11 +181,9 @@ const sendDeleteData = async () => {
                         :activeId="activeSingerId"
                         @clickedSinger="openSingersSongs"
                     />
-                    <Loading
-                        v-if="isLoadingSingerList"
-                        text=""
-                        :isOverlay="false"
-                    />
+                    <div v-if="isLoadingSingerList" class="Page__loadingWrap">
+                        <Loading text="" :isOverlay="false" />
+                    </div>
                 </div>
             </el-scrollbar>
         </div>
@@ -259,6 +277,12 @@ const sendDeleteData = async () => {
         <Loading v-if="isCreatingSong" text="登録中" />
         <Loading v-if="isEditingSong" text="更新中" />
         <Loading v-if="isDeletingSong" text="削除中" />
+
+        <FlashMessage
+            v-model:isVisible="showFlashMessage"
+            :message="flashMessage"
+            :type="flashMessagetype"
+        />
     </div>
 </template>
 
@@ -294,6 +318,13 @@ const sendDeleteData = async () => {
         text-align: center;
     }
 
+    &__loadingWrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 36px;
+    }
+
     &__editItems {
         display: flex;
         flex-direction: column;
@@ -307,6 +338,7 @@ const sendDeleteData = async () => {
 
     &__editLabel {
         width: 180px;
+        flex-shrink: 0;
     }
 
     &__LabelSmall {
@@ -332,6 +364,9 @@ const sendDeleteData = async () => {
     }
 
     @media screen and (max-width: 740px) {
+        &__header {
+            padding: 12px;
+        }
     }
 }
 

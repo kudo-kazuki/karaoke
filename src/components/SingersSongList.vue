@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import type { Song, SongFormInput } from '@/types'
 
 interface Props {
@@ -27,6 +28,59 @@ const clickedEdit = (data: SongFormInput) => {
 const clickedDelete = (data: { id: number; name: string }) => {
     emit('clickedDelete', data)
 }
+
+// ソート条件（デフォルト: id昇順）
+const sortKey = ref<
+    | 'id-asc'
+    | 'id-desc'
+    | 'updated-asc'
+    | 'updated-desc'
+    | 'name-asc'
+    | 'name-desc'
+>('id-asc')
+
+// ソートオプション定義
+const sortOptions = [
+    { label: 'ID昇順', value: 'id-asc' },
+    { label: 'ID降順', value: 'id-desc' },
+    { label: '更新日昇順', value: 'updated-asc' },
+    { label: '更新日降順', value: 'updated-desc' },
+    { label: '曲名昇順', value: 'name-asc' },
+    { label: '曲名降順', value: 'name-desc' },
+] as const
+
+// ソート済みリスト
+const sortedItems = computed(() => {
+    const items = [...props.items] // 破壊しないようコピー
+    switch (sortKey.value) {
+        case 'id-asc':
+            return items.sort((a, b) => a.id - b.id)
+        case 'id-desc':
+            return items.sort((a, b) => b.id - a.id)
+        case 'updated-asc':
+            return items.sort(
+                (a, b) =>
+                    new Date(a.updated_at).getTime() -
+                    new Date(b.updated_at).getTime(),
+            )
+        case 'updated-desc':
+            return items.sort(
+                (a, b) =>
+                    new Date(b.updated_at).getTime() -
+                    new Date(a.updated_at).getTime(),
+            )
+        case 'name-asc':
+            return items.sort((a, b) =>
+                (a.name ?? '').localeCompare(b.name ?? ''),
+            )
+        case 'name-desc':
+            return items.sort((a, b) =>
+                (b.name ?? '').localeCompare(a.name ?? ''),
+            )
+        default:
+            return items
+    }
+})
 </script>
 
 <template>
@@ -40,6 +94,19 @@ const clickedDelete = (data: { id: number; name: string }) => {
                     color="blue"
                     @click="clickedNewSongCreate"
                 />
+                <el-select
+                    class="SingersSongList__sortSelect"
+                    v-model="sortKey"
+                    placeholder="ソート"
+                    style="margin-left: 12px; width: 160px"
+                >
+                    <el-option
+                        v-for="option in sortOptions"
+                        :key="option.value"
+                        :label="option.label"
+                        :value="option.value"
+                    />
+                </el-select>
             </header>
             <el-scrollbar>
                 <div class="SingersSongList__content">
@@ -52,7 +119,7 @@ const clickedDelete = (data: { id: number; name: string }) => {
                         class="SingersSongList__items"
                     >
                         <li
-                            v-for="item in items"
+                            v-for="item in sortedItems"
                             :key="item.id"
                             class="SingersSongList__item"
                         >
@@ -100,6 +167,7 @@ const clickedDelete = (data: { id: number; name: string }) => {
 .SingersSongList {
     &__header {
         display: flex;
+        align-items: center;
         column-gap: 16px;
     }
 
@@ -108,6 +176,10 @@ const clickedDelete = (data: { id: number; name: string }) => {
         display: flex;
         justify-content: center;
         padding: 20px 12px;
+    }
+
+    & &__sortSelect {
+        margin-left: auto !important;
     }
 
     &__items {
@@ -138,8 +210,9 @@ const clickedDelete = (data: { id: number; name: string }) => {
     }
 
     &__name {
-        width: 70%;
+        width: 40%;
         font-weight: bold;
+        flex-shrink: 0;
     }
 
     &__buttons {
@@ -150,6 +223,9 @@ const clickedDelete = (data: { id: number; name: string }) => {
     }
 
     @media screen and (max-width: 740px) {
+        & &__sortSelect {
+            width: 124px !important;
+        }
     }
 }
 </style>

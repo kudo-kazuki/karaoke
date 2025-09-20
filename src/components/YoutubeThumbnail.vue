@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
+import { Fancybox } from '@fancyapps/ui'
+import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 interface Props {
     videoId: string
@@ -19,6 +21,16 @@ const thumbnailUrl = computed(
 const watchUrl = computed(
     () => `https://www.youtube.com/watch?v=${props.videoId}`,
 )
+
+onMounted(() => {
+    Fancybox.bind('[data-fancybox]', {
+        Html: {
+            video: {
+                autoplay: true,
+            },
+        },
+    } as any)
+})
 </script>
 
 <template>
@@ -32,13 +44,7 @@ const watchUrl = computed(
         </div>
 
         <p class="YoutubeThumbnail__link">
-            <a
-                v-if="isLink"
-                :href="watchUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                >{{ watchUrl }}</a
-            >
+            <a v-if="isLink" :href="watchUrl" data-fancybox>{{ watchUrl }}</a>
         </p>
     </div>
 </template>

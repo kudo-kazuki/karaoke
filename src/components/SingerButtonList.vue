@@ -88,5 +88,20 @@ watch(
             transform: translateY(-50%);
         }
     }
+
+    @media screen and (max-width: 740px) {
+        &__button {
+            padding: 10px 30px 10px 12px;
+            font-size: 16px;
+
+            &:before {
+                $size: 16px;
+                width: $size;
+                height: $size;
+                right: $size;
+                background-size: $size;
+            }
+        }
+    }
 }
 </style>
