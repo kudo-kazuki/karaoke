@@ -170,6 +170,9 @@ const opendTest = () => {
     }
 
     @media screen and (max-width: 740px) {
+        & &__singerSelect {
+            width: 170px;
+        }
     }
 }
 </style>
