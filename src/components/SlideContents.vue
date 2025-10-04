@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import iconClose from '@/assets/images/close2.png'
 import { ElScrollbar } from 'element-plus'
+import { useElScrollbarScroll } from '@/composables/useElScrollbarScroll'
+
+interface Props {
+    title?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    title: '',
+})
 
 const isOpen = defineModel<boolean>('isOpen', { default: false })
 
@@ -12,63 +21,15 @@ const close = () => {
     isOpen.value = false
 }
 
-const showScrollButton = ref(false)
-// 現在のスクロールTopを常に記憶
-const currentTop = ref(0)
-
 // スクロール対象の el-scrollbar インスタンス
 const scrollbarRef = ref<InstanceType<typeof ElScrollbar> | null>(null)
-
-// el-scrollbar の @scroll で受け取れるイベント引数
-type ScrollEvt = { scrollTop: number; scrollLeft: number }
-
-// スクロール時：位置を記録
-const onScroll = ({ scrollTop }: ScrollEvt) => {
-    console.log('g')
-    currentTop.value = scrollTop
-}
-
-// 位置を監視して、0なら非表示／それ以外は表示（しきい値は好みで）
-const THRESHOLD = 1 // 1px でも動いたら表示。100 とかに変えてもOK
-watch(currentTop, (t) => {
-    showScrollButton.value = t > THRESHOLD
-})
-
-// アニメーションで最上部へ
-const goToPageTop = () => {
-    // 1) ネイティブの smooth が使える環境なら scrollTo を優先
-    //    （Element Plusは内部で wrapRef.scrollTo を呼ぶので効く環境が多い）
-    if (scrollbarRef.value?.wrapRef?.scrollTo) {
-        scrollbarRef.value.wrapRef.scrollTo({ top: 0, behavior: 'smooth' })
-        return
-    }
-    // 2) フォールバック：requestAnimationFrame + setScrollTop で自前アニメ
-    smoothSetScrollTop(0, 350) // 350ms でスッと上がる
-}
-
-// setScrollTop を使った手作りスムーススクロール
-const smoothSetScrollTop = (to: number, duration = 300) => {
-    const start = currentTop.value
-    const startTime = performance.now()
-
-    const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3)
-
-    const frame = (now: number) => {
-        const prog = Math.min(1, (now - startTime) / duration)
-        const eased = easeOutCubic(prog)
-        const value = Math.round(start + (to - start) * eased)
-        scrollbarRef.value?.setScrollTop?.(value)
-        if (prog < 1) requestAnimationFrame(frame)
-    }
-
-    requestAnimationFrame(frame)
-}
-
-// 初期状態の反映（マウント時に現在位置を一度見ておく）
-onMounted(() => {
-    const initTop = scrollbarRef.value?.wrapRef?.scrollTop ?? 0
-    currentTop.value = initTop
-})
+const { showScrollButton, onScroll, goToPageTop } = useElScrollbarScroll(
+    scrollbarRef,
+    {
+        threshold: 1, // ボタン表示しきい値
+        duration: 350, // アニメ時間
+    },
+)
 </script>
 
 <template>
@@ -76,6 +37,9 @@ onMounted(() => {
         <section v-show="isOpen" class="SlideContents">
             <div class="SlideContents__inner">
                 <header class="SlideContents__header">
+                    <h1 v-if="title" class="SlideContents__title">
+                        {{ title }}
+                    </h1>
                     <button class="SlideContents__closeButton" @click="close">
                         <img
                             class="SlideContents__icon"
@@ -113,8 +77,14 @@ onMounted(() => {
     z-index: 999;
 
     &__header {
+        display: flex;
+        justify-content: space-between;
         padding: 16px 16px;
         border-bottom: 1px solid #333;
+    }
+
+    &__title {
+        font-weight: bold;
     }
 
     &__closeButton {

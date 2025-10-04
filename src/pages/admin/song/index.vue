@@ -189,6 +189,7 @@ const sendDeleteData = async () => {
         </div>
 
         <SlideContents
+            :title="`${activeSingerName}の曲一覧`"
             v-model:isOpen="isOpenSingerSongs"
             @afterClose="closeSingersSongs"
         >
@@ -197,6 +198,7 @@ const sendDeleteData = async () => {
                 :singerId="activeSingerId"
                 :singerName="activeSingerName"
                 :isLoading="isLoadingSongList"
+                :isOpen="isOpenSingerSongs"
                 @clickedNewSongCreate="openNewSongCreate"
                 @clickedEdit="openSongEdit"
                 @clickedDelete="openSongDelete"

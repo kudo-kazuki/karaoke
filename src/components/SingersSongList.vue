@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Song, SongFormInput } from '@/types'
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
     singerId: number | null
     singerName: string
     isLoading?: boolean
+    isOpen?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -81,15 +82,36 @@ const sortedItems = computed(() => {
             return items
     }
 })
+
+// フィルター付きリスト
+const filteringText = ref('')
+const filteredItems = computed(() => {
+    const keyword = filteringText.value.trim().toLowerCase()
+    if (!keyword) return sortedItems.value // 入力なしならソート結果そのまま
+
+    return sortedItems.value.filter((item) =>
+        (item.name ?? '').toLowerCase().includes(keyword),
+    )
+})
+watch(
+    () => props.isOpen,
+    (newVal) => {
+        if (newVal) {
+            filteringText.value = ''
+        }
+    },
+)
+const clearFilteringText = () => {
+    filteringText.value = ''
+}
 </script>
 
 <template>
     <div class="SingersSongList">
         <div class="SingersSongList__inner">
             <header class="SingersSongList__header" ref="headerRef">
-                <h1>{{ singerName }}の曲一覧</h1>
                 <Button
-                    class="Page__createButton"
+                    class="SingersSongList__createButton"
                     text="新規追加"
                     color="blue"
                     @click="clickedNewSongCreate"
@@ -107,6 +129,25 @@ const sortedItems = computed(() => {
                         :value="option.value"
                     />
                 </el-select>
+                <div class="SingersSongList__filterWrap">
+                    <label class="SingersSongList__filterLabel">
+                        <span class="SingersSongList__filterLabelText"
+                            >フィルター:</span
+                        >
+                        <input
+                            class="SingersSongList__filterInput"
+                            type="text"
+                            v-model="filteringText"
+                        />
+                    </label>
+                    <Button
+                        class="SingersSongList__clearButton"
+                        text="クリア"
+                        color="gray"
+                        size="s"
+                        @click="clearFilteringText()"
+                    />
+                </div>
             </header>
             <el-scrollbar>
                 <div class="SingersSongList__content">
@@ -119,7 +160,7 @@ const sortedItems = computed(() => {
                         class="SingersSongList__items"
                     >
                         <li
-                            v-for="item in sortedItems"
+                            v-for="item in filteredItems"
                             :key="item.id"
                             class="SingersSongList__item"
                         >
@@ -134,13 +175,13 @@ const sortedItems = computed(() => {
                                 </div>
                                 <div class="SingersSongList__buttons">
                                     <Button
-                                        class="Page__createButton"
+                                        class="SingersSongList__editButton"
                                         text="編集"
                                         color="blue"
                                         @click="clickedEdit(item)"
                                     />
                                     <Button
-                                        class="Page__createButton"
+                                        class="SingersSongList__deleteButton"
                                         text="削除"
                                         color="red"
                                         @click="
@@ -175,7 +216,42 @@ const sortedItems = computed(() => {
     &__header {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    & &__createButton {
+        margin-right: auto;
+    }
+
+    & &__sortSelect {
+        margin-left: auto !important;
+    }
+
+    &__filterWrap {
+        display: flex;
+        align-items: center;
+        column-gap: 12px;
+    }
+
+    & &__clearButton {
+        font-size: 12px;
+        flex-shrink: 0;
+        padding: 6px 8px;
+    }
+
+    &__filterLabel {
+        display: flex;
+        align-items: center;
         column-gap: 16px;
+    }
+
+    &__filterLabelText {
+        flex-shrink: 0;
+    }
+
+    &__filterInput[type='text']:not(.el-input__inner) {
+        width: 200px;
     }
 
     &__loadingWrap {
@@ -183,10 +259,6 @@ const sortedItems = computed(() => {
         display: flex;
         justify-content: center;
         padding: 20px 12px;
-    }
-
-    & &__sortSelect {
-        margin-left: auto !important;
     }
 
     &__items {
@@ -239,6 +311,20 @@ const sortedItems = computed(() => {
     @media screen and (max-width: 740px) {
         & &__sortSelect {
             width: 124px !important;
+        }
+    }
+
+    @media screen and (max-width: 600px) {
+        &__filterWrap {
+            width: 100%;
+        }
+
+        &__filterLabel {
+            width: 100%;
+        }
+
+        &__filterInput[type='text']:not(.el-input__inner) {
+            width: 100%;
         }
     }
 }

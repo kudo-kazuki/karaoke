@@ -5,6 +5,8 @@ import { useWindowSizeAndDevice } from '@/composables/useWindowSizeAndDevice'
 const { width, height, deviceType } = useWindowSizeAndDevice()
 import { useSingerList } from '@/composables/useSingerList'
 import { useSongList } from '@/composables/useSongList'
+import { ElScrollbar } from 'element-plus'
+import { useElScrollbarScroll } from '@/composables/useElScrollbarScroll'
 
 const adminAuthStore = useAdminAuthStore()
 
@@ -56,6 +58,15 @@ const opendTest = () => {
         isOpentest.value = true
     }, 1000)
 }
+
+const scrollbarRef = ref<InstanceType<typeof ElScrollbar> | null>(null)
+const { showScrollButton, onScroll, goToPageTop } = useElScrollbarScroll(
+    scrollbarRef,
+    {
+        threshold: 1, // ボタン表示しきい値
+        duration: 350, // アニメ時間
+    },
+)
 </script>
 
 <template>
@@ -65,7 +76,7 @@ const opendTest = () => {
         :data-device="deviceType"
         :data-windowWidth="width"
     >
-        <el-scrollbar>
+        <el-scrollbar ref="scrollbarRef" @scroll="onScroll">
             <header class="Page__header">
                 <label class="Page__singerSelectWrap"
                     ><span class="Page__singerSelectText">歌手を選択：</span>
@@ -81,8 +92,15 @@ const opendTest = () => {
                             :key="singer.id"
                             :label="singer.name"
                             :value="singer.id"
-                        /> </el-select
-                ></label>
+                        />
+                    </el-select>
+                    <Loading
+                        v-if="isLoadingSingerList"
+                        class="Page__singerLoading"
+                        text=""
+                        :isOverlay="false"
+                    />
+                </label>
 
                 <router-link
                     v-if="adminAuthStore.level === 0"
@@ -94,11 +112,8 @@ const opendTest = () => {
             <h1 class="Page__h1">
                 {{ activeSingerName ? activeSingerName : '未選択' }}
             </h1>
-            <main>
-                <div
-                    v-if="isLoadingSingerList || isLoadingSongList"
-                    class="Page__loadingWrap"
-                >
+            <main class="Page__main">
+                <div v-if="isLoadingSongList" class="Page__loadingWrap">
                     <Loading text="" :isOverlay="false" />
                 </div>
 
@@ -115,6 +130,11 @@ const opendTest = () => {
                 </p>
             </main>
         </el-scrollbar>
+
+        <ScrollToTopButton
+            v-model:isVisible="showScrollButton"
+            @clicked="goToPageTop()"
+        />
     </section>
 </template>
 
@@ -132,6 +152,7 @@ const opendTest = () => {
     }
 
     &__singerSelectWrap {
+        position: relative;
         display: flex;
         align-items: center;
     }
@@ -142,6 +163,13 @@ const opendTest = () => {
 
     & &__singerSelect {
         width: 200px;
+    }
+
+    & &__singerLoading {
+        position: absolute;
+        top: 50%;
+        right: 30%;
+        transform: translate(0, -50%);
     }
 
     &__adminLink {
@@ -169,9 +197,17 @@ const opendTest = () => {
         padding: 36px;
     }
 
+    &__main {
+        padding-bottom: 60px;
+    }
+
     @media screen and (max-width: 740px) {
         & &__singerSelect {
             width: 170px;
+        }
+
+        &__main {
+            padding-bottom: 52px;
         }
     }
 }
