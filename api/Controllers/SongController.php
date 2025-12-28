@@ -5,6 +5,7 @@ require_once __DIR__ . '/../bootstrap.php';
 
 use Models\Song;
 use Models\Singer;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 class SongController
 {
@@ -55,7 +56,7 @@ class SongController
 
             $songs = Song::where('singer_id', $input['singer_id'])
                 ->orderBy('id')
-                ->get(['id', 'singer_id', 'name', 'youtube_url', 'release_date', 'lyrics', 'created_at', 'updated_at'])
+                ->get(['id', 'singer_id', 'name', 'youtube_url', 'release_date', 'lyrics', 'sort_order', 'created_at', 'updated_at'])
                 ->toArray();
 
             success($songs);
@@ -205,6 +206,40 @@ class SongController
             error('指定された曲が見つかりません', 404);
         } catch (\Throwable $e) {
             error('曲の削除に失敗しました: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**オリジナルソート定義用API */
+    public function updateSortOrder(): void
+    {
+        $user = requireAdmin();
+        if ($user->level !== 0) {
+            error('管理者権限がありません', 403);
+        }
+
+        $input = getJsonInput();
+
+        if (
+            !isset($input['singer_id']) ||
+            !is_numeric($input['singer_id']) ||
+            !isset($input['orders']) ||
+            !is_array($input['orders'])
+        ) {
+            error('不正な入力です', 422);
+        }
+
+        try {
+            Capsule::connection()->transaction(function () use ($input) {
+                foreach ($input['orders'] as $item) {
+                    Song::where('id', $item['id'])
+                        ->where('singer_id', $input['singer_id'])
+                        ->update(['sort_order' => $item['sort_order']]);
+                }
+            });
+
+            success();
+        } catch (\Throwable $e) {
+            error('並び順の更新に失敗しました', 500);
         }
     }
 }

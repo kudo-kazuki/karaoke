@@ -1,7 +1,7 @@
 <script setup lang="ts">
 interface Props {
     text: string
-    color?: 'blue' | 'black' | 'gray' | 'red' | 'orange'
+    color?: 'blue' | 'black' | 'gray' | 'red' | 'orange' | 'green'
     size?: 'l' | 'm' | 's'
     isActive?: boolean
     isDisabled?: boolean
@@ -75,6 +75,12 @@ $color-styles: (
         'background-color': #e97911,
         'hover-color': #fff,
         'hover-background-color': #ee8019,
+    ),
+    'green': (
+        'color': #fff,
+        'background-color': #037427,
+        'hover-color': #fff,
+        'hover-background-color': #077d2d,
     ),
 );
 

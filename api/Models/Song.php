@@ -15,6 +15,7 @@ class Song extends Model
         'youtube_url',
         'release_date',
         'lyrics',
+        'sort_order',
     ];
 
     /** Create用ルール */

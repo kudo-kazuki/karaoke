@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { api, apiAuth } from '@/utils/apiClient'
-import type { Song, SongFormInput } from '@/types'
+import type { Song, SongFormInput, UpdateSongOrderPayload } from '@/types'
 
 interface ApiResponse<T> {
     success: boolean
@@ -58,11 +58,22 @@ export function useSongApi() {
         return response.data
     }
 
+    const updateSongOrder = async (
+        payload: UpdateSongOrderPayload,
+    ): Promise<ApiResponse<null>> => {
+        const response = await apiAuth.post<ApiResponse<null>>(
+            '/song/updateSortOrder',
+            payload,
+        )
+        return response.data
+    }
+
     return {
         isLoadingSongs,
         fetchSongsBySingerId,
         createSong,
         editSong,
         deleteSong,
+        updateSongOrder,
     }
 }

@@ -1,3 +1,5 @@
+import { SONG_SORT_KEY } from '@/constants/song'
+
 export interface AdminJWTPayload {
     exp: number
     name: string
@@ -52,6 +54,7 @@ export interface Song {
     youtube_url?: string | null
     release_date?: string | null // YYYY-MM-DD 形式 or null
     lyrics?: string | null
+    sort_order?: number
     created_at: string
     updated_at: string
 }
@@ -68,4 +71,14 @@ export interface SongFormInput {
 export interface SubmitPayload {
     isCreate: boolean
     songData: SongFormInput
+}
+
+export type SongSortKey = (typeof SONG_SORT_KEY)[keyof typeof SONG_SORT_KEY]
+
+export interface UpdateSongOrderPayload {
+    singer_id: number
+    orders: {
+        id: number
+        sort_order: number
+    }[]
 }

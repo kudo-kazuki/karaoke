@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { Song, SongFormInput } from '@/types'
+import type { Song, SongFormInput, SongSortKey } from '@/types'
+import { SONG_SORT_KEY, SONG_SORT_OPTION } from '@/constants/song'
 
 interface Props {
     items: Song[]
@@ -16,10 +17,15 @@ const emit = defineEmits([
     'clickedNewSongCreate',
     'clickedEdit',
     'clickedDelete',
+    'clickedSongOrder',
 ])
 
 const clickedNewSongCreate = () => {
     emit('clickedNewSongCreate', props.singerId)
+}
+
+const clickedSongOrder = () => {
+    emit('clickedSongOrder', props.singerId)
 }
 
 const clickedEdit = (data: SongFormInput) => {
@@ -31,53 +37,43 @@ const clickedDelete = (data: { id: number; name: string }) => {
 }
 
 // ソート条件（デフォルト: id昇順）
-const sortKey = ref<
-    | 'id-asc'
-    | 'id-desc'
-    | 'updated-asc'
-    | 'updated-desc'
-    | 'name-asc'
-    | 'name-desc'
->('id-asc')
-
-// ソートオプション定義
-const sortOptions = [
-    { label: 'ID昇順', value: 'id-asc' },
-    { label: 'ID降順', value: 'id-desc' },
-    { label: '更新日昇順', value: 'updated-asc' },
-    { label: '更新日降順', value: 'updated-desc' },
-    { label: '曲名昇順', value: 'name-asc' },
-    { label: '曲名降順', value: 'name-desc' },
-] as const
+const sortKey = ref<SongSortKey>(SONG_SORT_KEY.ID_ASC)
 
 // ソート済みリスト
 const sortedItems = computed(() => {
     const items = [...props.items] // 破壊しないようコピー
     switch (sortKey.value) {
-        case 'id-asc':
+        case SONG_SORT_KEY.ID_ASC:
             return items.sort((a, b) => a.id - b.id)
-        case 'id-desc':
+
+        case SONG_SORT_KEY.ID_DESC:
             return items.sort((a, b) => b.id - a.id)
-        case 'updated-asc':
+
+        case SONG_SORT_KEY.UPDATED_ASC:
             return items.sort(
                 (a, b) =>
                     new Date(a.updated_at).getTime() -
                     new Date(b.updated_at).getTime(),
             )
-        case 'updated-desc':
+
+        case SONG_SORT_KEY.UPDATED_DESC:
             return items.sort(
                 (a, b) =>
                     new Date(b.updated_at).getTime() -
                     new Date(a.updated_at).getTime(),
             )
-        case 'name-asc':
-            return items.sort((a, b) =>
-                (a.name ?? '').localeCompare(b.name ?? ''),
+
+        case SONG_SORT_KEY.NAME_ASC:
+            return items.sort((a, b) => a.name.localeCompare(b.name))
+
+        case SONG_SORT_KEY.NAME_DESC:
+            return items.sort((a, b) => b.name.localeCompare(a.name))
+
+        case SONG_SORT_KEY.ORIGINAL:
+            return items.sort(
+                (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
             )
-        case 'name-desc':
-            return items.sort((a, b) =>
-                (b.name ?? '').localeCompare(a.name ?? ''),
-            )
+
         default:
             return items
     }
@@ -116,6 +112,12 @@ const clearFilteringText = () => {
                     color="blue"
                     @click="clickedNewSongCreate"
                 />
+                <Button
+                    class="SingersSongList__sortButton"
+                    text="並べ替え"
+                    color="green"
+                    @click="clickedSongOrder"
+                />
                 <el-select
                     class="SingersSongList__sortSelect"
                     v-model="sortKey"
@@ -123,7 +125,7 @@ const clearFilteringText = () => {
                     style="margin-left: 12px; width: 160px"
                 >
                     <el-option
-                        v-for="option in sortOptions"
+                        v-for="option in SONG_SORT_OPTION"
                         :key="option.value"
                         :label="option.label"
                         :value="option.value"
@@ -221,7 +223,6 @@ const clearFilteringText = () => {
     }
 
     & &__createButton {
-        margin-right: auto;
     }
 
     & &__sortSelect {

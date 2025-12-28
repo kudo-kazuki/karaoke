@@ -2,7 +2,13 @@ import { ref } from 'vue'
 import type { Song, SongFormInput } from '@/types'
 import { useSongApi } from './useSongApi'
 
-const { fetchSongsBySingerId, createSong, editSong, deleteSong } = useSongApi()
+const {
+    fetchSongsBySingerId,
+    createSong,
+    editSong,
+    deleteSong,
+    updateSongOrder,
+} = useSongApi()
 
 export function useSongList() {
     const songList = ref<Song[]>([])
@@ -10,6 +16,7 @@ export function useSongList() {
     const isCreatingSong = ref(false)
     const isEditingSong = ref(false)
     const isDeletingSong = ref(false)
+    const isUpdatingSongOrder = ref(false)
 
     const fetchSongListBySingerId = async (singerId: number) => {
         isLoadingSongList.value = true
@@ -88,15 +95,53 @@ export function useSongList() {
         }
     }
 
+    const updateSongOrderAndReload = async (
+        singerId: number,
+        orderedSongs: Song[],
+    ) => {
+        if (isUpdatingSongOrder.value) {
+            return { success: false, message: '処理中です' }
+        }
+
+        isUpdatingSongOrder.value = true
+        try {
+            const payload = {
+                singer_id: singerId,
+                orders: orderedSongs.map((song, index) => ({
+                    id: song.id,
+                    sort_order: index,
+                })),
+            }
+
+            const response = await updateSongOrder(payload)
+
+            if (response.success) {
+                await fetchSongListBySingerId(singerId)
+            }
+
+            return response
+        } catch (e: any) {
+            return {
+                success: false,
+                message:
+                    e.response?.data?.message ?? '並び順の保存に失敗しました',
+            }
+        } finally {
+            isUpdatingSongOrder.value = false
+        }
+    }
+
     return {
         songList,
         isLoadingSongList,
         isCreatingSong,
         isEditingSong,
         isDeletingSong,
+        isUpdatingSongOrder,
         fetchSongListBySingerId,
         createSongAndReload,
         editSongAndReload,
         deleteSongAndReload,
+        updateSongOrderAndReload,
     }
 }

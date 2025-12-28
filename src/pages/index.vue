@@ -7,6 +7,8 @@ import { useSingerList } from '@/composables/useSingerList'
 import { useSongList } from '@/composables/useSongList'
 import { ElScrollbar } from 'element-plus'
 import { useElScrollbarScroll } from '@/composables/useElScrollbarScroll'
+import type { SongSortKey, Song } from '@/types'
+import { SONG_SORT_KEY, SONG_SORT_OPTION } from '@/constants/song'
 
 const adminAuthStore = useAdminAuthStore()
 
@@ -67,6 +69,50 @@ const { showScrollButton, onScroll, goToPageTop } = useElScrollbarScroll(
         duration: 350, // アニメ時間
     },
 )
+
+// ソート条件（デフォルト: id昇順）
+const sortKey = ref<SongSortKey>(SONG_SORT_KEY.ID_ASC)
+
+// ソート済みリスト
+const sortedSongList = computed<Song[]>(() => {
+    const items = [...songList.value] // 破壊防止
+
+    switch (sortKey.value) {
+        case SONG_SORT_KEY.ID_ASC:
+            return items.sort((a, b) => a.id - b.id)
+
+        case SONG_SORT_KEY.ID_DESC:
+            return items.sort((a, b) => b.id - a.id)
+
+        case SONG_SORT_KEY.UPDATED_ASC:
+            return items.sort(
+                (a, b) =>
+                    new Date(a.updated_at).getTime() -
+                    new Date(b.updated_at).getTime(),
+            )
+
+        case SONG_SORT_KEY.UPDATED_DESC:
+            return items.sort(
+                (a, b) =>
+                    new Date(b.updated_at).getTime() -
+                    new Date(a.updated_at).getTime(),
+            )
+
+        case SONG_SORT_KEY.NAME_ASC:
+            return items.sort((a, b) => a.name.localeCompare(b.name))
+
+        case SONG_SORT_KEY.NAME_DESC:
+            return items.sort((a, b) => b.name.localeCompare(a.name))
+
+        case SONG_SORT_KEY.ORIGINAL:
+            return items.sort(
+                (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+            )
+
+        default:
+            return items
+    }
+})
 </script>
 
 <template>
@@ -111,6 +157,18 @@ const { showScrollButton, onScroll, goToPageTop } = useElScrollbarScroll(
             </header>
             <h1 class="Page__h1">
                 {{ activeSingerName ? activeSingerName : '未選択' }}
+                <el-select
+                    class="Page__sortSelect"
+                    v-model="sortKey"
+                    placeholder="ソート"
+                >
+                    <el-option
+                        v-for="option in SONG_SORT_OPTION"
+                        :key="option.value"
+                        :label="option.label"
+                        :value="option.value"
+                    />
+                </el-select>
             </h1>
             <main class="Page__main">
                 <div v-if="isLoadingSongList" class="Page__loadingWrap">
@@ -119,7 +177,7 @@ const { showScrollButton, onScroll, goToPageTop } = useElScrollbarScroll(
 
                 <SingerSongAccordionList
                     v-if="singerList && songList"
-                    :items="songList"
+                    :items="sortedSongList"
                 />
                 <p
                     v-if="
@@ -177,6 +235,10 @@ const { showScrollButton, onScroll, goToPageTop } = useElScrollbarScroll(
     }
 
     &__h1 {
+        display: flex;
+        column-gap: 12px;
+        justify-content: center;
+        align-items: center;
         text-align: center;
         font-weight: bold;
         font-size: 16px;
@@ -188,6 +250,12 @@ const { showScrollButton, onScroll, goToPageTop } = useElScrollbarScroll(
         top: 0;
         left: 0;
         z-index: 11;
+    }
+
+    & &__sortSelect {
+        color: #111;
+        flex-shrink: 0;
+        width: 140px;
     }
 
     &__loadingWrap {

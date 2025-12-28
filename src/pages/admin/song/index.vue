@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useWindowSizeAndDevice } from '@/composables/useWindowSizeAndDevice'
 const { width, height, deviceType } = useWindowSizeAndDevice()
 import { useSingerList } from '@/composables/useSingerList'
 import { useSongList } from '@/composables/useSongList'
-import type { SubmitPayload, SongFormInput } from '@/types'
+import type { SubmitPayload, SongFormInput, Song } from '@/types'
 import { EMPTY_DATA } from '@/constants/song'
+import draggable from 'vuedraggable'
 
 const { singerList, fetchSingerList, isLoadingSingerList } = useSingerList()
 const {
@@ -18,6 +19,8 @@ const {
     editSongAndReload,
     isDeletingSong,
     deleteSongAndReload,
+    isUpdatingSongOrder,
+    updateSongOrderAndReload,
 } = useSongList()
 
 onMounted(async () => {
@@ -31,12 +34,21 @@ const activeSingerName = computed(() => {
     return singer ? singer.name : ''
 })
 
+const editableOrderList = ref<Song[]>([])
+
 // activeSingerId が変わったら曲一覧取得
-watch(activeSingerId, (newId) => {
+watch(activeSingerId, async (newId) => {
     if (newId !== null) {
-        fetchSongListBySingerId(newId)
+        await fetchSongListBySingerId(newId)
+        console.log('songList:', songList.value)
+
+        // sort_order順にコピーして作業用にセット
+        editableOrderList.value = [...songList.value].sort(
+            (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+        )
     } else {
         songList.value = []
+        editableOrderList.value = []
     }
 })
 
@@ -157,6 +169,34 @@ const sendDeleteData = async () => {
         flashMessagetype.value = 'error'
     }
 }
+
+const isOpenSongOrder = ref(false)
+const openSongOrder = () => {
+    isOpenSongOrder.value = true
+}
+const closeSongOrder = () => {
+    isOpenSongOrder.value = false
+}
+const saveSongOrder = async () => {
+    if (!activeSingerId.value) return
+
+    const res = await updateSongOrderAndReload(
+        activeSingerId.value,
+        editableOrderList.value,
+    )
+
+    showFlashMessage.value = true
+
+    if (res.success) {
+        flashMessage.value = '並び順を保存しました'
+        flashMessagetype.value = 'success'
+        isOpenSingerSongs.value = false
+        closeSongOrder()
+    } else {
+        flashMessage.value = res.message ?? '並び順の保存に失敗しました'
+        flashMessagetype.value = 'error'
+    }
+}
 </script>
 
 <template>
@@ -200,6 +240,7 @@ const sendDeleteData = async () => {
                 :isLoading="isLoadingSongList"
                 :isOpen="isOpenSingerSongs"
                 @clickedNewSongCreate="openNewSongCreate"
+                @clickedSongOrder="openSongOrder"
                 @clickedEdit="openSongEdit"
                 @clickedDelete="openSongDelete"
             />
@@ -246,7 +287,7 @@ const sendDeleteData = async () => {
         <Modal
             :title="`${activeSingerName}：${activeDeleteData.name}の削除`"
             :isShow="isOpenSongDelete"
-            @close="closeSongDelete()"
+            @close="closeSongOrder()"
         >
             <template #body>
                 <div>
@@ -276,9 +317,43 @@ const sendDeleteData = async () => {
             </template>
         </Modal>
 
+        <!-- 曲順定義 -->
+        <Modal
+            :title="`${activeSingerName}の曲オリジナル並び順定義`"
+            :isShow="isOpenSongOrder"
+            @close="closeSongOrder()"
+        >
+            <template #body>
+                <div>
+                    <EditableOrderList
+                        v-model="editableOrderList"
+                        keyName="id"
+                    />
+                </div>
+            </template>
+            <template #footer>
+                <div class="Page__footerButtonWrap" style="margin-top: 0">
+                    <Button
+                        class="Page__footerButton"
+                        text="キャンセル"
+                        color="gray"
+                        @click="closeSongOrder()"
+                    />
+                    <Button
+                        class="Page__footerButton"
+                        text="保存"
+                        color="blue"
+                        :isDisabled="isUpdatingSongOrder"
+                        @click="saveSongOrder()"
+                    />
+                </div>
+            </template>
+        </Modal>
+
         <Loading v-if="isCreatingSong" text="登録中" />
         <Loading v-if="isEditingSong" text="更新中" />
         <Loading v-if="isDeletingSong" text="削除中" />
+        <Loading v-if="isUpdatingSongOrder" text="保存中" />
 
         <FlashMessage
             v-model:isVisible="showFlashMessage"

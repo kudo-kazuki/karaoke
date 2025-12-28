@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AccordionItem: typeof import('./components/AccordionItem.vue')['default']
     Button: typeof import('./components/Button.vue')['default']
+    EditableOrderList: typeof import('./components/EditableOrderList.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
     ElOption: typeof import('element-plus/es')['ElOption']
