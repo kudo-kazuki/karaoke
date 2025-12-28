@@ -57,6 +57,12 @@ const props = withDefaults(
         border-top: 1px solid #ddd;
     }
 
+    &__item[draggable='true'] &__button {
+        box-shadow: 1px 1px 4px rgba($color: #000000, $alpha: 0.3);
+        background-color: orange;
+        transition: 0.2s ease background-color;
+    }
+
     &__button {
         width: 100%;
         cursor: grab;
@@ -69,6 +75,7 @@ const props = withDefaults(
         padding: 6px 12px;
         border-bottom: 1px solid #ddd;
         touch-action: manipulation;
+        background-color: #fff;
     }
 
     &__icon {
