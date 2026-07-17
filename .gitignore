@@ -13,6 +13,7 @@ dist-ssr
 .env.develop
 .env.localtest
 .env.production
+scripts/ftp.deploy.json
 
 # Editor directories and files
 .vscode/*

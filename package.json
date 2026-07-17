@@ -6,6 +6,8 @@
     "scripts": {
         "dev": "vite --host",
         "build": "vue-tsc -b && vite build",
+        "deploy": "node scripts/deploy-ftp.mjs --target web",
+        "deploy:api": "node scripts/deploy-ftp.mjs --target api",
         "preview": "vite preview"
     },
     "dependencies": {
@@ -27,6 +29,7 @@
     "devDependencies": {
         "@types/node": "^20.17.10",
         "@vitejs/plugin-vue": "^5.2.1",
+        "basic-ftp": "^6.0.1",
         "concurrently": "^9.1.0",
         "cross-env": "^7.0.3",
         "eslint": "^9.17.0",
