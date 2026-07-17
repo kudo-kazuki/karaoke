@@ -1,9 +1,20 @@
-@import url('https://fonts.googleapis.com/earlyaccess/notosansjapanese.css');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+:root {
+    --app-font-family: 'Noto Sans JP', 'メイリオ', Meiryo, 'ヒラギノ角ゴ Pro W3',
+        'Hiragino Kaku Gothic Pro', sans-serif;
+    --el-font-family: var(--app-font-family);
+}
+
+html,
+body,
+#app {
+    font-family: var(--app-font-family);
+}
 
 body {
     font-family:
-        'Noto Sans Japanese', 'メイリオ', Meiryo, 'ヒラギノ角ゴ Pro W3',
-        'Hiragino Kaku Gothic Pro', sans-serif;
+        var(--app-font-family);
     font-size: 16px;
     color: #050505;
     line-height: 1.6;
@@ -98,7 +109,7 @@ select {
         }
 
         @media (max-width: 767px) {
-            font-size: 14px;
+            font-size: 16px;
         }
     }
 }
@@ -124,7 +135,14 @@ select {
         height: 43px;
 
         @media (max-width: 767px) {
-            font-size: 14px;
+            font-size: 16px;
+        }
+    }
+
+    .el-input__inner,
+    .el-select__input {
+        @media (max-width: 767px) {
+            font-size: 16px;
         }
     }
 
